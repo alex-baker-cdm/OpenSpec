@@ -31,6 +31,7 @@ import { qoderAdapter } from './adapters/qoder.js';
 import { lingmaAdapter } from './adapters/lingma.js';
 import { qwenAdapter } from './adapters/qwen.js';
 import { roocodeAdapter } from './adapters/roocode.js';
+import { devinAdapter } from './adapters/devin.js';
 import { windsurfAdapter } from './adapters/windsurf.js';
 
 /**
@@ -53,6 +54,7 @@ export class CommandAdapterRegistry {
     CommandAdapterRegistry.register(costrictAdapter);
     CommandAdapterRegistry.register(crushAdapter);
     CommandAdapterRegistry.register(cursorAdapter);
+    CommandAdapterRegistry.register(devinAdapter);
     CommandAdapterRegistry.register(factoryAdapter);
     CommandAdapterRegistry.register(geminiAdapter);
     CommandAdapterRegistry.register(githubCopilotAdapter);
