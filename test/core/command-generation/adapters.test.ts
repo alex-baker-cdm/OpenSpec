@@ -23,6 +23,7 @@ import { piAdapter } from '../../../src/core/command-generation/adapters/pi.js';
 import { qoderAdapter } from '../../../src/core/command-generation/adapters/qoder.js';
 import { qwenAdapter } from '../../../src/core/command-generation/adapters/qwen.js';
 import { roocodeAdapter } from '../../../src/core/command-generation/adapters/roocode.js';
+import { devinAdapter } from '../../../src/core/command-generation/adapters/devin.js';
 import { windsurfAdapter } from '../../../src/core/command-generation/adapters/windsurf.js';
 import type { CommandContent } from '../../../src/core/command-generation/types.js';
 
@@ -673,6 +674,52 @@ describe('command-generation/adapters', () => {
     });
   });
 
+  describe('devinAdapter', () => {
+    it('should have correct toolId', () => {
+      expect(devinAdapter.toolId).toBe('devin');
+    });
+
+    it('should generate correct file path', () => {
+      const filePath = devinAdapter.getFilePath('explore');
+      expect(filePath).toBe(path.join('.devin', 'skills', 'opsx-explore', 'SKILL.md'));
+    });
+
+    it('should generate correct file paths for different commands', () => {
+      expect(devinAdapter.getFilePath('new')).toBe(path.join('.devin', 'skills', 'opsx-new', 'SKILL.md'));
+      expect(devinAdapter.getFilePath('bulk-archive')).toBe(path.join('.devin', 'skills', 'opsx-bulk-archive', 'SKILL.md'));
+    });
+
+    it('should format file with name and description frontmatter', () => {
+      const output = devinAdapter.formatFile(sampleContent);
+      expect(output).toContain('---\n');
+      expect(output).toContain('name: OpenSpec Explore');
+      expect(output).toContain('description: Enter explore mode for thinking');
+      expect(output).toContain('---\n\n');
+      expect(output).toContain('This is the command body.\n\nWith multiple lines.');
+    });
+
+    it('should not include category or tags in Devin format', () => {
+      const output = devinAdapter.formatFile(sampleContent);
+      expect(output).not.toContain('category:');
+      expect(output).not.toContain('tags:');
+    });
+
+    it('should handle empty description', () => {
+      const contentEmptyDesc: CommandContent = { ...sampleContent, description: '' };
+      const output = devinAdapter.formatFile(contentEmptyDesc);
+      expect(output).toContain('description: \n');
+    });
+
+    it('should escape YAML special characters in description', () => {
+      const contentWithSpecialChars: CommandContent = {
+        ...sampleContent,
+        description: 'Fix: regression in "auth" feature',
+      };
+      const output = devinAdapter.formatFile(contentWithSpecialChars);
+      expect(output).toContain('description: "Fix: regression in \\"auth\\" feature"');
+    });
+  });
+
   describe('cross-platform path handling', () => {
     it('Claude adapter uses path.join for paths', () => {
       // path.join handles platform-specific separators
@@ -691,14 +738,19 @@ describe('command-generation/adapters', () => {
       expect(filePath.split(path.sep)).toEqual(['.windsurf', 'workflows', 'opsx-test.md']);
     });
 
+    it('Devin adapter uses path.join for paths', () => {
+      const filePath = devinAdapter.getFilePath('test');
+      expect(filePath.split(path.sep)).toEqual(['.devin', 'skills', 'opsx-test', 'SKILL.md']);
+    });
+
     it('All adapters use path.join for paths', () => {
       // Verify all adapters produce valid paths
       const adapters = [
         amazonQAdapter, antigravityAdapter, auggieAdapter, bobAdapter, clineAdapter,
         codexAdapter, codebuddyAdapter, continueAdapter, costrictAdapter,
-        crushAdapter, factoryAdapter, geminiAdapter, githubCopilotAdapter,
-        iflowAdapter, kilocodeAdapter, opencodeAdapter, piAdapter, qoderAdapter,
-        qwenAdapter, roocodeAdapter
+        crushAdapter, cursorAdapter, devinAdapter, factoryAdapter, geminiAdapter,
+        githubCopilotAdapter, iflowAdapter, kilocodeAdapter, opencodeAdapter,
+        piAdapter, qoderAdapter, qwenAdapter, roocodeAdapter
       ];
       for (const adapter of adapters) {
         const filePath = adapter.getFilePath('test');
